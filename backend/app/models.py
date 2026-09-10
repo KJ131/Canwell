@@ -17,7 +17,7 @@ class Well(Base):
     longitude = Column(Float, nullable=False)
     status = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-
+    well_licence_number = Column(String, nullable = False, unique = True)
     production_logs = relationship("ProductionLog", back_populates="well")
 
 
