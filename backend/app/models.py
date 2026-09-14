@@ -9,7 +9,7 @@ class Well(Base):
     __tablename__ = "wells"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=False, index = True)
     operator = Column(String, nullable=False)
     province = Column(String, nullable=False)
     region = Column(String, nullable=False)
