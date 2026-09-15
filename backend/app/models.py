@@ -9,7 +9,7 @@ class Well(Base):
     __tablename__ = "wells"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, index = True)
+    name = Column(String(50), nullable=False, index = True)
     operator = Column(String, nullable=False)
     province = Column(String, nullable=False)
     region = Column(String, nullable=False)
@@ -17,7 +17,7 @@ class Well(Base):
     longitude = Column(Float, nullable=False)
     status = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    well_licence_number = Column(String, nullable = False, unique = True)
+    well_licence_number = Column(String(20), nullable = False, unique = True)
     production_logs = relationship("ProductionLog", back_populates="well")
 
 
