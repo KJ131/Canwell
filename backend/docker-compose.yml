@@ -1,0 +1,23 @@
+services:
+  db:
+    image: mcr.microsoft.com/azure-sql-edge
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "CanWell123!Strong"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  api:
+    build: .
+    depends_on:
+      - db
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "mssql+pyodbc://sa:CanWell123!Strong@db:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+
+volumes:
+  sqlserver_data:
