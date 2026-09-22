@@ -9,6 +9,7 @@ class WellBase(BaseModel):
     latitude: float
     longitude: float
     status: str
+    well_licence_number: str
 
 class WellCreate(WellBase):
     pass
