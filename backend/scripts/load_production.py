@@ -10,6 +10,10 @@ print(f"found {len(files)} files")
 
 db = SessionLocal()
 
+print("loading wells into memory...")
+well_lookup = {name: id_ for id_, name in db.query(models.Well.id, models.Well.name)}
+print(f"loaded {len(well_lookup)} wells")
+
 total_matched = 0
 total_not_found = 0
 
@@ -24,23 +28,24 @@ for filepath in files:
 
     matched = 0
     not_found = 0
+    logs = []
 
     for index, row in oil_wells.iterrows():
         location_code = decode_uwi(row["FromToIDIdentifier"])
-        well = db.query(models.Well).filter(models.Well.name == location_code).first()
+        well_id = well_lookup.get(location_code)
 
-        if well is None:
+        if well_id is None:
             not_found += 1
             continue
 
-        log = models.ProductionLog(
-            well_id=well.id,
+        logs.append(models.ProductionLog(
+            well_id=well_id,
             production_bpd=row["Volume"],
             log_date=datetime.strptime(row["ProductionMonth"], "%Y-%m").date(),
-        )
-        db.add(log)
+        ))
         matched += 1
 
+    db.bulk_save_objects(logs)
     db.commit()
 
     total_matched += matched
