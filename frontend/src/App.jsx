@@ -1,58 +1,22 @@
-import { useEffect, useState } from "react";
-import KpiCards from "./components/KpiCards";
-import Sidebar from "./components/Sidebar";
-import MapView from "./components/MapView";
-import WellDetail from "./components/WellDetail";
-import { getWells } from "./api";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import NavBar from "./components/NavBar";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import MapPage from "./pages/MapPage";
 
 export default function App() {
-  const [wells, setWells] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({ status: "", operator: "" });
-  const [selectedWellId, setSelectedWellId] = useState(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    getWells({ limit: 500, ...filters })
-      .then(setWells)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [filters]);
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      <header
-        style={{
-          padding: "12px 16px",
-          background: "#1a365d",
-          color: "#fff",
-        }}
-      >
-        <h2 style={{ margin: 0 }}>CanWell — Alberta Oil Well Tracker</h2>
-      </header>
-
-      <KpiCards wells={wells} />
-
-      <div style={{ display: "flex", flex: 1, position: "relative", minHeight: 0 }}>
-        <Sidebar filters={filters} onChange={setFilters} />
-
-        <div style={{ flex: 1, position: "relative" }}>
-          {loading && <p style={{ padding: "16px" }}>Loading wells...</p>}
-          {error && <p style={{ padding: "16px", color: "red" }}>{error}</p>}
-          {!loading && !error && (
-            <MapView wells={wells} onSelectWell={setSelectedWellId} />
-          )}
-
-          {selectedWellId && (
-            <WellDetail
-              wellId={selectedWellId}
-              onClose={() => setSelectedWellId(null)}
-            />
-          )}
+    <BrowserRouter>
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+        <NavBar />
+        <div style={{ flex: 1, minHeight: 0, overflow: "auto" }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/map" element={<MapPage />} />
+          </Routes>
         </div>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
