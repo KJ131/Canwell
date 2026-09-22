@@ -18,6 +18,7 @@ class Well(Base):
     status = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     well_licence_number = Column(String(20), nullable = False, unique = True)
+    well_type = Column(String(10), nullable=False, default="inactive", index=True)
     production_logs = relationship("ProductionLog", back_populates="well")
 
 
@@ -26,6 +27,7 @@ class ProductionLog(Base):
 
     id = Column(Integer, primary_key=True)
     well_id = Column(Integer, ForeignKey("wells.id"), nullable=False)
+    product_type = Column(String(10), nullable=False, default="OIL")
     production_bpd = Column(Float, nullable=False)
     log_date = Column(Date, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -10,6 +10,7 @@ class WellBase(BaseModel):
     longitude: float
     status: str
     well_licence_number: str
+    well_type: str
 
 class WellCreate(WellBase):
     pass
@@ -23,6 +24,7 @@ class Well(WellBase):
 
 class ProductionLogBase(BaseModel):
     well_id : int
+    product_type : str
     production_bpd : float
     log_date : date
    

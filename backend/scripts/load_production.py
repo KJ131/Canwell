@@ -1,6 +1,7 @@
 import glob
 import pandas as pd
 from datetime import datetime
+from sqlalchemy import text
 from app.database import SessionLocal
 from app import models
 from scripts.uwi import decode_uwi
@@ -20,9 +21,9 @@ total_not_found = 0
 for filepath in files:
     df = pd.read_csv(filepath, low_memory=False)
 
-    oil_wells = df[
+    prod_rows = df[
         (df["ActivityID"] == "PROD") &
-        (df["ProductID"] == "OIL") &
+        (df["ProductID"].isin(["OIL", "GAS"])) &
         (df["FromToIDType"] == "WI")
     ]
 
@@ -30,7 +31,7 @@ for filepath in files:
     not_found = 0
     logs = []
 
-    for index, row in oil_wells.iterrows():
+    for index, row in prod_rows.iterrows():
         location_code = decode_uwi(row["FromToIDIdentifier"])
         well_id = well_lookup.get(location_code)
 
@@ -40,6 +41,7 @@ for filepath in files:
 
         logs.append(models.ProductionLog(
             well_id=well_id,
+            product_type=row["ProductID"],
             production_bpd=row["Volume"],
             log_date=datetime.strptime(row["ProductionMonth"], "%Y-%m").date(),
         ))
@@ -52,5 +54,19 @@ for filepath in files:
     total_not_found += not_found
     print(f"{filepath}: matched={matched}, not_found={not_found}")
 
-db.close()
 print(f"TOTAL: matched={total_matched}, not_found={total_not_found}")
+
+print("computing well_type for each well...")
+db.execute(text("UPDATE wells SET well_type = 'inactive'"))
+db.execute(text("""
+    UPDATE wells SET well_type = 'gas'
+    WHERE id IN (SELECT DISTINCT well_id FROM production_logs WHERE product_type = 'GAS')
+"""))
+db.execute(text("""
+    UPDATE wells SET well_type = 'oil'
+    WHERE id IN (SELECT DISTINCT well_id FROM production_logs WHERE product_type = 'OIL')
+"""))
+db.commit()
+print("well_type computed")
+
+db.close()

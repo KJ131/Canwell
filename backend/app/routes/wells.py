@@ -11,6 +11,7 @@ def get_wells(
     limit: int = 100,
     status: str | None = None,
     operator: str | None = None,
+    well_type: str | None = None,
     db: Session = Depends(get_db),
 ):
     query = db.query(models.Well)
@@ -18,6 +19,8 @@ def get_wells(
         query = query.filter(models.Well.status == status)
     if operator:
         query = query.filter(models.Well.operator.contains(operator))
+    if well_type:
+        query = query.filter(models.Well.well_type == well_type)
     return query.order_by(models.Well.id).offset(skip).limit(limit).all()
 
 @router.get("/{well_id}", response_model=schemas.Well)
