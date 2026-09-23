@@ -8,10 +8,11 @@ async function request(path) {
   return res.json();
 }
 
-export function getWells({ skip = 0, limit = 500, status, operator } = {}) {
+export function getWells({ skip = 0, limit = 500, status, operator, well_type } = {}) {
   const params = new URLSearchParams({ skip, limit });
   if (status) params.set("status", status);
   if (operator) params.set("operator", operator);
+  if (well_type) params.set("well_type", well_type);
   return request(`/wells/?${params.toString()}`);
 }
 
@@ -21,4 +22,12 @@ export function getWell(id) {
 
 export function getWellProduction(id) {
   return request(`/wells/${id}/production`);
+}
+
+export function getStatsSummary() {
+  return request(`/stats/summary`);
+}
+
+export function getProductionTrend() {
+  return request(`/stats/production-trend`);
 }

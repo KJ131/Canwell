@@ -1,17 +1,12 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 
 const ALBERTA_CENTER = [54.5, -114.5];
+
+const COLORS = {
+  oil: "#1a7f37",
+  gas: "#d97706",
+  inactive: "#9ca3af",
+};
 
 export default function MapView({ wells, onSelectWell }) {
   return (
@@ -25,9 +20,15 @@ export default function MapView({ wells, onSelectWell }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {wells.map((well) => (
-        <Marker
+        <CircleMarker
           key={well.id}
-          position={[well.latitude, well.longitude]}
+          center={[well.latitude, well.longitude]}
+          radius={6}
+          pathOptions={{
+            color: COLORS[well.well_type] || COLORS.inactive,
+            fillColor: COLORS[well.well_type] || COLORS.inactive,
+            fillOpacity: 0.8,
+          }}
           eventHandlers={{ click: () => onSelectWell(well.id) }}
         >
           <Popup>
@@ -35,9 +36,11 @@ export default function MapView({ wells, onSelectWell }) {
             <br />
             {well.operator}
             <br />
+            Type: {well.well_type}
+            <br />
             Status: {well.status}
           </Popup>
-        </Marker>
+        </CircleMarker>
       ))}
     </MapContainer>
   );

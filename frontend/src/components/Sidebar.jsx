@@ -7,6 +7,14 @@ const STATUS_OPTIONS = [
   "Cancelled",
 ];
 
+const WELL_TYPE_OPTIONS = [
+  { value: "active", label: "Active wells (oil & gas)" },
+  { value: "oil", label: "Oil wells" },
+  { value: "gas", label: "Gas wells" },
+  { value: "inactive", label: "Inactive wells" },
+  { value: "all", label: "All wells" },
+];
+
 export default function Sidebar({ filters, onChange }) {
   return (
     <div
@@ -18,6 +26,21 @@ export default function Sidebar({ filters, onChange }) {
       }}
     >
       <h3 style={{ marginTop: 0 }}>Filters</h3>
+
+      <label style={{ display: "block", marginBottom: "6px", fontSize: "13px" }}>
+        Well type
+      </label>
+      <select
+        value={filters.well_type}
+        onChange={(e) => onChange({ ...filters, well_type: e.target.value })}
+        style={{ width: "100%", padding: "6px", marginBottom: "16px" }}
+      >
+        {WELL_TYPE_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
 
       <label style={{ display: "block", marginBottom: "6px", fontSize: "13px" }}>
         Status
@@ -44,6 +67,21 @@ export default function Sidebar({ filters, onChange }) {
         placeholder="e.g. Canadian Natural"
         style={{ width: "100%", padding: "6px", boxSizing: "border-box" }}
       />
+
+      <div style={{ marginTop: "24px", fontSize: "12px", color: "#555" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#1a7f37", display: "inline-block" }} />
+          Oil well
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#d97706", display: "inline-block" }} />
+          Gas well
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#9ca3af", display: "inline-block" }} />
+          Inactive
+        </div>
+      </div>
     </div>
   );
 }

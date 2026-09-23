@@ -20,12 +20,15 @@ export default function WellDetail({ wellId, onClose }) {
     Promise.all([getWell(wellId), getWellProduction(wellId)])
       .then(([wellData, prodData]) => {
         setWell(wellData);
-        setProduction(
-          prodData.map((p) => ({
-            month: p.log_date.slice(0, 7),
-            production_bpd: p.production_bpd,
-          }))
-        );
+        const byMonth = {};
+        for (const p of prodData) {
+          const month = p.log_date.slice(0, 7);
+          const entry = byMonth[month] || { month };
+          if (p.product_type === "OIL") entry.oil_bpd = p.production_bpd;
+          if (p.product_type === "GAS") entry.gas_bpd = p.production_bpd;
+          byMonth[month] = entry;
+        }
+        setProduction(Object.values(byMonth).sort((a, b) => a.month.localeCompare(b.month)));
       })
       .finally(() => setLoading(false));
   }, [wellId]);
@@ -63,6 +66,9 @@ export default function WellDetail({ wellId, onClose }) {
             <strong>Province:</strong> {well.province}
             <br />
             <strong>Licence #:</strong> {well.well_licence_number}
+            <br />
+            <strong>Type:</strong>{" "}
+            {well.well_type === "oil" ? "Oil" : well.well_type === "gas" ? "Gas" : "Inactive"}
           </p>
 
           <h4>Production history (bpd)</h4>
@@ -73,12 +79,22 @@ export default function WellDetail({ wellId, onClose }) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                 <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
+                <Tooltip formatter={(value) => Number(value).toFixed(1)} />
                 <Line
                   type="monotone"
-                  dataKey="production_bpd"
-                  stroke="#2b6cb0"
+                  dataKey="oil_bpd"
+                  name="Oil"
+                  stroke="#1a7f37"
                   dot={false}
+                  connectNulls
+                />
+                <Line
+                  type="monotone"
+                  dataKey="gas_bpd"
+                  name="Gas"
+                  stroke="#d97706"
+                  dot={false}
+                  connectNulls
                 />
               </LineChart>
             </ResponsiveContainer>

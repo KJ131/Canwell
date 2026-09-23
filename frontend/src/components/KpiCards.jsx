@@ -1,11 +1,13 @@
 export default function KpiCards({ wells }) {
   const total = wells.length;
-  const active = wells.filter((w) => w.status === "Issued").length;
+  const oil = wells.filter((w) => w.well_type === "oil").length;
+  const gas = wells.filter((w) => w.well_type === "gas").length;
   const operators = new Set(wells.map((w) => w.operator)).size;
 
   const cards = [
     { label: "Wells shown", value: total.toLocaleString() },
-    { label: "Active (Issued)", value: active.toLocaleString() },
+    { label: "Oil wells", value: oil.toLocaleString() },
+    { label: "Gas wells", value: gas.toLocaleString() },
     { label: "Unique operators", value: operators.toLocaleString() },
   ];
 
