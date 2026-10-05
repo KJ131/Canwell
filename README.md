@@ -1,6 +1,12 @@
 # CanWell: Alberta Oil & Gas Well Tracker
 
-CanWell is a full-stack web app for exploring Alberta oil and gas wells. It loads real well licence data and monthly production volumes, then lets you browse them on an interactive map, filter by operator, status and well type, and chart production over time.
+CanWell is a full-stack web app for exploring Alberta oil and gas wells. It is built on real public regulatory data, not synthetic data: well licences from the Alberta Energy Regulator (AER) and monthly production volumes from Petrinex. You can browse wells on an interactive map, filter by operator, status and well type, and chart production over time.
+
+**At a glance**
+
+- 539,890 wells from AER's well registry (ST37)
+- 4.15 million monthly oil and gas production records from 35 months of Petrinex data
+- Deployed as a three-tier app: React frontend on Vercel, FastAPI backend on Azure Container Apps, and Azure SQL Database
 
 ## Features
 
@@ -16,9 +22,9 @@ CanWell is a full-stack web app for exploring Alberta oil and gas wells. It load
 |---|---|
 | Frontend | React 19, Vite, React Router, Leaflet / react-leaflet, Recharts |
 | Backend | Python 3.13, FastAPI, SQLAlchemy, Uvicorn |
-| Database | Microsoft SQL Server (Azure SQL Edge in Docker) via `pyodbc` |
+| Database | Microsoft SQL Server via `pyodbc`: Azure SQL Database in production, Azure SQL Edge in Docker for local development |
 | Data loading | pandas, openpyxl |
-| Deployment | Docker and Docker Compose (database and API) |
+| Infrastructure | Docker, Azure Container Registry, Azure Container Apps, Vercel (frontend hosting) |
 
 ## Project structure
 
@@ -115,6 +121,25 @@ The app opens at `http://localhost:5173`.
 
 - Well licence data from the Alberta Energy Regulator (AER).
 - Monthly production volumes from Petrinex.
+
+## Deployment
+
+The live version runs as three tiers:
+
+| Tier | Where it runs |
+|---|---|
+| Frontend | Vercel |
+| Backend API | Docker image built with Azure Container Registry and run on Azure Container Apps |
+| Database | Azure SQL Database (serverless tier, auto-pauses when idle) |
+
+To keep costs low, the database auto-pauses and the API container scales to zero replicas when idle. The trade-off is a few seconds of cold-start delay on the first request after a quiet period. Each release uses a versioned image tag, because redeploying the same `:latest` tag does not reliably roll out a new revision on Azure Container Apps.
+
+## Engineering notes
+
+- **Joining two government datasets.** Petrinex identifies wells with an encoded UWI string, while AER uses Alberta's Dominion Land Survey location format. `backend/scripts/uwi.py` decodes the UWI so the two datasets can be matched.
+- **Fast ingestion.** The first version of the production loader queried the database once per row to find each well's ID, which is far too slow against a cloud database. The loader now fetches every well ID into an in-memory dictionary once and inserts records in batches. The full load went from an estimated 20+ hours to about 14 minutes.
+- **SQL Server vs SQLite.** Moving from SQLite surfaced two differences: SQL Server requires an explicit `ORDER BY` for paginated queries, and indexed or unique text columns need a defined length.
+- **Local development on ARM.** Microsoft's standard SQL Server image is x86-only, so local development uses the ARM-compatible Azure SQL Edge image.
 
 ## Configuration
 
