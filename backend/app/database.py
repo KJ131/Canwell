@@ -3,10 +3,12 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-SQLALCHEMY_DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "mssql+pyodbc://sa:CanWell123!Strong@localhost:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes",
-)
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL")
+if not SQLALCHEMY_DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set. See the 'Configuration' section of the README "
+        "and backend/.env.example."
+    )
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL

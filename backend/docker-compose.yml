@@ -3,9 +3,10 @@ services:
     image: mcr.microsoft.com/azure-sql-edge
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: "CanWell123!Strong"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in backend/.env (see .env.example)}"
     ports:
-      - "1433:1433"
+      # Bound to localhost only so the database is not exposed on your network
+      - "127.0.0.1:1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
 
@@ -17,7 +18,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: "mssql+pyodbc://sa:CanWell123!Strong@db:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+      DATABASE_URL: "mssql+pyodbc://sa:${MSSQL_SA_PASSWORD}@db:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
 
 volumes:
   sqlserver_data:

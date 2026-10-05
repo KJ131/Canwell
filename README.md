@@ -51,13 +51,19 @@ Canwell/
 
 ### 1. Start the database and API
 
-From the `backend/` folder:
+From the `backend/` folder, create your own `.env` file from the template and set a password (see [Configuration](#configuration)):
+
+```bash
+cp .env.example .env      # on Windows PowerShell: Copy-Item .env.example .env
+```
+
+Then start everything:
 
 ```bash
 docker compose up --build
 ```
 
-This starts SQL Server on port `1433` and the API on `http://localhost:8000`. Interactive API docs are at `http://localhost:8000/docs`. Tables are created automatically when the API starts.
+This starts SQL Server on port `1433` (localhost only) and the API on `http://localhost:8000`. Interactive API docs are at `http://localhost:8000/docs`. Tables are created automatically when the API starts.
 
 ### 2. Load the data
 
@@ -68,9 +74,14 @@ backend/data/raw/ST37_SH.xlsx          # AER well licence list
 backend/data/raw/production/*.CSV      # Monthly Petrinex production volumes
 ```
 
-Then, from `backend/` with the database running and the ODBC Driver 18 for SQL Server installed locally, run the loaders in this order:
+Then, from `backend/` with the database running and the ODBC Driver 18 for SQL Server installed locally, set `DATABASE_URL` (using the password from your `.env`) and run the loaders in this order:
 
 ```bash
+# macOS / Linux
+export DATABASE_URL="mssql+pyodbc://sa:YOUR_PASSWORD@localhost:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+# Windows PowerShell
+# $env:DATABASE_URL = "mssql+pyodbc://sa:YOUR_PASSWORD@localhost:1433/canwell?driver=ODBC+Driver+18+for+SQL+Server&TrustServerCertificate=yes"
+
 pip install -r requirements.txt
 python -m scripts.load_wells
 python -m scripts.load_production
@@ -80,13 +91,7 @@ python -m scripts.load_production
 
 ### 3. Start the frontend
 
-From `frontend/`, create a `.env` file that points at the API:
-
-```
-VITE_API_URL=http://localhost:8000
-```
-
-Then:
+From `frontend/`, copy `.env.example` to `.env` (it points the app at the API on `http://localhost:8000`), then:
 
 ```bash
 npm install
@@ -113,7 +118,15 @@ The app opens at `http://localhost:5173`.
 
 ## Configuration
 
-The API reads its database connection from the `DATABASE_URL` environment variable and falls back to a local SQL Server default for development. For anything beyond local development, set your own `DATABASE_URL` and database password instead of using the development defaults.
+No passwords are stored in this repository. Settings come from environment variables:
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `MSSQL_SA_PASSWORD` | `backend/.env` (copied from `.env.example`) | Password for the SQL Server `sa` account. Docker Compose uses it to start the database and to build the API's connection string. |
+| `DATABASE_URL` | set automatically by Docker Compose; set it yourself when running the API or loader scripts outside Docker | SQLAlchemy connection string. The API refuses to start without it. |
+| `VITE_API_URL` | `frontend/.env` (copied from `.env.example`) | Base URL of the API the frontend talks to. |
+
+`.env` files are git-ignored. Choose your own strong password and never commit it.
 
 ## Status
 
